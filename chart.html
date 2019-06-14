@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.css" />
+    <style>
+        canvas {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+    </style>
+    <title>Thermometer Chart</title>
+</head>
+
+<body>
+    <div id="container" style="width: 100%;">
+        <canvas id="canvas"></canvas>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.js"></script>
+    <script type="text/javascript">
+        window.onload = function() {
+            var barData = {
+                labels: [],
+                datasets: [{
+                    label: 'Thermometer Data',
+                    data: [],
+                    backgroundColor: [
+                        'rgba(0, 99, 132, 0.6)',
+                        'rgba(30, 99, 132, 0.6)',
+                        'rgba(60, 99, 132, 0.6)',
+                        'rgba(90, 99, 132, 0.6)',
+                        'rgba(120, 99, 132, 0.6)',
+                        'rgba(150, 99, 132, 0.6)',
+                        'rgba(180, 99, 132, 0.6)',
+                        'rgba(210, 99, 132, 0.6)',
+                        'rgba(240, 99, 132, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(0, 99, 132, 1)',
+                        'rgba(30, 99, 132, 1)',
+                        'rgba(60, 99, 132, 1)',
+                        'rgba(90, 99, 132, 1)',
+                        'rgba(120, 99, 132, 1)',
+                        'rgba(150, 99, 132, 1)',
+                        'rgba(180, 99, 132, 1)',
+                        'rgba(210, 99, 132, 1)',
+                        'rgba(240, 99, 132, 1)'
+                    ],
+                    borderWidth: 2,
+                    hoverBorderWidth: 0
+                }]
+            };
+            var ctx = document.getElementById('canvas').getContext('2d');
+            window.myBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: barData,
+                options: {
+                    responsive: true,
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Thermometer Reading Values Bar Chart'
+                    }
+                }
+            });
+            var socket = io.connect('http://localhost:8002');
+            socket.on('serverConnected', function(data) {
+                socket.emit('clientConnected', {
+                    status: 'Connected'
+                });
+            });
+            socket.on('sendChartData', (data) => {
+                const hasDuplicate = barData.labels.includes(data.x);
+                if (!hasDuplicate) {
+                    barData.labels.push(data.x);
+                    barData.datasets[0].data.push(data.y);
+                    window.myBarChart.update();
+                }
+            });
+        };
+    </script>
+</body>
+
+</html>
